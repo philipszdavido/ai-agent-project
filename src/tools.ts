@@ -1,7 +1,7 @@
 // LESSON 2: Tools = a schema (what the model sees) + a handler (what your code runs).
 // The model never executes anything. It only *asks* you to run a tool.
 
-import type Anthropic from "@anthropic-ai/sdk";
+import type { ToolDef } from "./providers/types.js";
 import { evaluate } from "mathjs";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -19,12 +19,12 @@ function safePath(p: string): string {
 
 // 1) What the model sees: names, descriptions, JSON schemas.
 //    Good descriptions matter more than clever code.
-export const toolDefinitions: Anthropic.Tool[] = [
+export const toolDefinitions: ToolDef[] = [
   {
     name: "calculate",
     description:
       "Evaluate a math expression exactly, e.g. '(1200 * 1.075) ^ 2'. Use this for any arithmetic instead of computing in your head.",
-    input_schema: {
+    parameters: {
       type: "object",
       properties: { expression: { type: "string", description: "The math expression" } },
       required: ["expression"],
@@ -33,17 +33,17 @@ export const toolDefinitions: Anthropic.Tool[] = [
   {
     name: "get_time",
     description: "Get the current date and time in ISO format (UTC).",
-    input_schema: { type: "object", properties: {} },
+    parameters: { type: "object", properties: {} },
   },
   {
     name: "list_files",
     description: "List files in the workspace folder.",
-    input_schema: { type: "object", properties: {} },
+    parameters: { type: "object", properties: {} },
   },
   {
     name: "read_file",
     description: "Read a text file from the workspace.",
-    input_schema: {
+    parameters: {
       type: "object",
       properties: { path: { type: "string", description: "Relative path, e.g. notes.md" } },
       required: ["path"],
@@ -52,7 +52,7 @@ export const toolDefinitions: Anthropic.Tool[] = [
   {
     name: "write_file",
     description: "Create or overwrite a text file in the workspace.",
-    input_schema: {
+    parameters: {
       type: "object",
       properties: {
         path: { type: "string", description: "Relative path, e.g. summary.md" },
@@ -65,7 +65,7 @@ export const toolDefinitions: Anthropic.Tool[] = [
     name: "fetch_url",
     description:
       "Download a web page and return its text content (HTML stripped, truncated to ~8000 chars).",
-    input_schema: {
+    parameters: {
       type: "object",
       properties: { url: { type: "string", description: "Full https:// URL" } },
       required: ["url"],

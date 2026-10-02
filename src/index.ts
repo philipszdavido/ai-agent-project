@@ -1,19 +1,29 @@
 import "dotenv/config";
 import readline from "node:readline/promises";
 import { Agent } from "./agent.js";
+import { createProvider } from "./providers/index.js";
 
-if (!process.env.ANTHROPIC_API_KEY) {
-  console.error("Missing ANTHROPIC_API_KEY. Copy .env.example to .env and add your key.");
+let provider;
+try {
+  provider = createProvider();
+} catch (err) {
+  console.error((err as Error).message);
   process.exit(1);
 }
 
-const agent = new Agent();
+const agent = new Agent(provider);
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+rl.on("close", () => process.exit(0)); // exit cleanly on Ctrl+D or closed stdin
 
-console.log("Agent ready. Type a task. Commands: /reset, /exit\n");
+console.log(`Agent ready on ${provider.name} (${provider.model}). Commands: /reset, /exit\n`);
 
 while (true) {
-  const input = (await rl.question("you > ")).trim();
+  let input: string;
+  try {
+    input = (await rl.question("you > ")).trim();
+  } catch {
+    break; // stdin closed
+  }
   if (!input) continue;
   if (input === "/exit") break;
   if (input === "/reset") {
